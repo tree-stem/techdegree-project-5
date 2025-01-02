@@ -1,5 +1,7 @@
+// Created a DOM element to append each user element
 const gallery = document.getElementById("gallery");
 
+// Created a function that makes a promise to return the users information
 async function getPersonData() {
   const response = await fetch("https://randomuser.me/api/").then((response) =>
     response.json()
@@ -12,7 +14,11 @@ async function getPersonData() {
   const getCity = results.location["city"];
   const getState = results.location["state"];
   const getPhoto = results.picture["large"];
-  const getPhone = results.phone;
+  const getCell = results.cell;
+  const getDOB = results.dob["date"];
+  const getStreet = results.location["street"];
+  const getNat = results.nat;
+  const getPostcode = results.location["postcode"];
 
   const person = {
     firstName: getFirstName,
@@ -21,15 +27,21 @@ async function getPersonData() {
     city: getCity,
     state: getState,
     picture: getPhoto,
-    phone: getPhone,
+    cell: getCell,
+    dob: getDOB,
+    street: getStreet,
+    nat: getNat,
+    postcode: getPostcode,
   };
 
   return person;
 }
 
+// Created a function that collects user data and displays it in html through interpolation
 async function fetchPersonsData(count) {
   const persons = [];
 
+  // Loops through each user created and makes a promise to fetch information
   for (let i = 1; i <= count; i++) {
     const data = await getPersonData();
     persons.push(data);
@@ -66,9 +78,9 @@ async function fetchPersonsData(count) {
               <p class="modal-text">${person.email}</p>
               <p class="modal-text cap">${person.city}</p>
               <hr>
-              <p class="modal-text">${person.phone}</p>
-              <p class="modal-text">123 Portland Ave., Portland, OR 97204</p>
-              <p class="modal-text">Birthday: 10/21/2015</p>
+              <p class="modal-text">${person.cell}</p>
+              <p class="modal-text">${person.street["number"]} ${person.street["name"]}, ${person.state}, ${person.nat} ${person.postcode}</p>
+              <p class="modal-text">Birthday: ${person.dob.slice(8, 10)}/${person.dob.slice(5, 7)}/${person.dob.slice(0, 4)}</p>
             </div>
         </div>`;
 
@@ -82,7 +94,7 @@ async function fetchPersonsData(count) {
       });
     });
   });
-  console.log(persons);
 }
 
+// Calls function to generate desired user count 
 fetchPersonsData(12);
