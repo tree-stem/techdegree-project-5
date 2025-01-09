@@ -1,5 +1,6 @@
 // Created a DOM element to append each user element
 const gallery = document.getElementById("gallery");
+const userNames = [];
 
 // Created a function that makes a promise to return the users information
 async function getPersonsData(count) {
@@ -45,26 +46,17 @@ function getModalHTML(user) {
               <p class="modal-text">${user.location.street["number"]} ${user.location.street["name"]}, ${user.location.state}, ${user.nat} ${user.location.postcode}</p>
               <p class="modal-text">Birthday: ${birthdayDisplay}</p>
             </div>
-        </div>`;
-}
-
-function handleModal(user) {
-  const modal = document.createElement("div");
-
-  modal.insertAdjacentHTML("beforeend", getModalHTML(user));
-  gallery.appendChild(modal);
-
-  const closeButton = document.getElementById("modal-close-btn");
-
-  closeButton.addEventListener("click", (event) => {
-    gallery.removeChild(modal);
-  });
+            <div class="modal-btn-container">
+              <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
+              <button type="button" id="modal-next" class="modal-next btn">Next</button>
+            </div>
+          </div> 
+        </div>      
+  `;
 }
 
 // Created a function that collects user data and displays it in html through interpolation
 async function displayPersonsData(count) {
-  const userNames = [];
-  console.log(userNames);
   const users = await getPersonsData(count);
 
   users.map((user) => {
@@ -75,6 +67,7 @@ async function displayPersonsData(count) {
   const namesLowerCase = userNames.map((name) => {
     return name.toLowerCase();
   });
+
   renderUsers(users);
   handleSearch(namesLowerCase, userNames, users);
 }
@@ -84,9 +77,92 @@ function renderUsers(users) {
 
   users.forEach((user) => {
     gallery.insertAdjacentHTML("beforeend", getCardHTML(user));
+    gallery.insertAdjacentHTML("beforeend", getModalHTML(user));
+  });
 
-    const card = gallery.querySelector(".card:last-child");
-    card.addEventListener("click", () => handleModal(user));
+  const cards = gallery.querySelectorAll(".card");
+  const modals = document.querySelectorAll(".modal-container");
+
+  const firstModal = modals[0];
+  const lastModal = modals[modals.length - 1];
+
+  firstModal.querySelector("#modal-prev").style.display = "none";
+  lastModal.querySelector("#modal-next").style.display = "none";
+
+  modals.forEach((modal, index) => {
+    modal.style.display = "none";
+
+    const closeBtn = modal.querySelector("#modal-close-btn");
+
+    const prevBtn = modal.querySelector("#modal-prev");
+    const nextBtn = modal.querySelector("#modal-next");
+
+    const nextIndex = index + 1;
+    const prevIndex = index - 1;
+
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+        if (prevIndex >= 0) {
+          modals[prevIndex].style.display = "block";
+        }
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+        if (nextIndex < modals.length) {
+          modals[nextIndex].style.display = "block";
+        }
+      });
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") {
+      const currentModal = document.querySelector(
+        ".modal-container[style*='block']"
+      );
+
+      if (currentModal) {
+        const currentIndex = Array.from(modals).indexOf(currentModal);
+        const prevIndex = currentIndex - 1;
+
+        if (prevIndex >= 0) {
+          currentModal.style.display = "none";
+          modals[prevIndex].style.display = "block";
+        }
+      }
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight") {
+      const currentModal = document.querySelector(
+        ".modal-container[style*='block']"
+      );
+
+      if (currentModal) {
+        const currentIndex = Array.from(modals).indexOf(currentModal);
+        const nextIndex = currentIndex + 1;
+
+        if (nextIndex < modals.length) {
+          currentModal.style.display = "none";
+          modals[nextIndex].style.display = "block";
+        }
+      }
+    }
+  });
+
+  cards.forEach((card, index) => {
+    card.addEventListener("click", () => {
+      modals[index].style.display = "block";
+    });
   });
 }
 
@@ -96,6 +172,8 @@ function handleSearch(namesLowerCase, userNames, users) {
 
   searchInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
+      event.preventDefault();
+
       const searchedName = searchInput.value.toLowerCase();
       const filteredUsers = users.filter((user, index) =>
         namesLowerCase[index].includes(searchedName)
@@ -104,7 +182,9 @@ function handleSearch(namesLowerCase, userNames, users) {
     }
   });
 
-  searchSubmit.addEventListener("click", () => {
+  searchSubmit.addEventListener("click", (event) => {
+    event.preventDefault();
+
     const searchedName = searchInput.value.toLowerCase();
     const filteredUsers = users.filter((user, index) =>
       namesLowerCase[index].includes(searchedName)
